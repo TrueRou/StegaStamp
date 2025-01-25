@@ -1,10 +1,12 @@
 import cv2
 import bchlib
-import tensorflow as tf
+import tensorflow._api.v2.compat.v1 as tf
 import argparse
 import numpy as np
 from tensorflow.python.saved_model import tag_constants
 from tensorflow.python.saved_model import signature_constants
+
+tf.disable_v2_behavior()
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--detector_model", type=str, required=True)
@@ -75,7 +77,7 @@ def main():
         decoder_output = decoder_graph.get_tensor_by_name(decoder_output_name)
 
     cap = cv2.VideoCapture(args.video)
-    bch = bchlib.BCH(BCH_POLYNOMIAL, BCH_BITS)
+    bch = bchlib.BCH(BCH_BITS, BCH_POLYNOMIAL)
 
     ret, frame = cap.read()
     f_height, f_width = frame.shape[0:2]
@@ -169,7 +171,7 @@ def main():
 
                 data, ecc = packet[: -bch.ecc_bytes], packet[-bch.ecc_bytes :]
 
-                bitflips = bch.decode_inplace(data, ecc)
+                bitflips = bch.decode(data, ecc)
 
                 if bitflips != -1:
                     print("Num bits corrected: ", bitflips)
@@ -180,7 +182,7 @@ def main():
                     color = (100, 250, 100)
                     cv2.polylines(frame, np.int32([corners]), thickness=6, color=color, isClosed=True)
                     font = cv2.FONT_HERSHEY_SIMPLEX
-                    im = cv2.putText(frame, code, tuple((corners[0, :] + np.array([0, -15])).astype(np.int)), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
+                    im = cv2.putText(frame, code, tuple((corners[0, :] + np.array([0, -15])).astype(np.int32)), font, 1, (0, 0, 0), 2, cv2.LINE_AA)
 
         if args.save_video is not None:
             out.write(frame)
