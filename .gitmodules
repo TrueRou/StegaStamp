@@ -1,3 +1,0 @@
-[submodule "lpips"]
-	path = lpips
-	url = https://github.com/alexlee-gk/lpips-tensorflow.git
